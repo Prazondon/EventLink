@@ -17,10 +17,11 @@ local development.
 
 ## Run the API without Docker
 
-Install the dependencies from `database/requirements`, make PostgreSQL
+Install the project dependencies, make PostgreSQL
 available on `localhost:5432`, and start FastAPI from the repository root:
 
 ```text
+pip install -r requirements.txt
 uvicorn database.main:app --reload
 ```
 
