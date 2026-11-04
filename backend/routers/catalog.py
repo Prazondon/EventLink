@@ -52,6 +52,10 @@ def _public_business_query(db: Session):
     )
 
 
+def _escape_like(value: str) -> str:
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 def _serialize_business(row: tuple) -> PublicBusinessRead:
     business, profile, average_rating, review_count = row
     return PublicBusinessRead(
@@ -87,20 +91,26 @@ def search_businesses(
             "min_price cannot be greater than max_price.",
         )
     query = _public_business_query(db)
-    if q:
-        term = f"%{q.strip()}%"
+    if q and q.strip():
+        term = f"%{_escape_like(q.strip())}%"
         query = query.filter(
             or_(
-                BusinessAccount.business_name.ilike(term),
-                BusinessProfile.description.ilike(term),
-                BusinessProfile.categories.any(Category.name.ilike(term)),
-                BusinessProfile.services.any(Service.name.ilike(term)),
+                BusinessAccount.business_name.ilike(term, escape="\\"),
+                BusinessProfile.description.ilike(term, escape="\\"),
+                BusinessProfile.categories.any(Category.name.ilike(term, escape="\\")),
+                BusinessProfile.services.any(Service.name.ilike(term, escape="\\")),
             )
         )
-    if city:
-        query = query.filter(BusinessAccount.location_city.ilike(city.strip()))
-    if country:
-        query = query.filter(BusinessAccount.location_country.ilike(country.strip()))
+    # Location filters match partial names ("Kath" finds "Kathmandu") and treat
+    # user input literally rather than as LIKE wildcards.
+    if city and city.strip():
+        query = query.filter(
+            BusinessAccount.location_city.ilike(f"%{_escape_like(city.strip())}%", escape="\\")
+        )
+    if country and country.strip():
+        query = query.filter(
+            BusinessAccount.location_country.ilike(f"%{_escape_like(country.strip())}%", escape="\\")
+        )
     if category_id:
         query = query.filter(BusinessProfile.categories.any(Category.id == category_id))
     if min_price is not None or max_price is not None:
@@ -116,7 +126,13 @@ def search_businesses(
     elif sort == "newest":
         query = query.order_by(BusinessProfile.created_at.desc(), BusinessAccount.id)
     else:
-        query = query.order_by(func.avg(Review.rating).desc(), BusinessAccount.id)
+        # coalesce keeps unreviewed businesses below rated ones: PostgreSQL sorts
+        # NULL first under DESC, which put every unreviewed listing at the top.
+        query = query.order_by(
+            func.coalesce(func.avg(Review.rating), 0).desc(),
+            func.count(Review.id).desc(),
+            BusinessAccount.id,
+        )
 
     rows = query.offset(offset).limit(limit).all()
     return [_serialize_business(row) for row in rows]

@@ -361,3 +361,51 @@ def test_database_health_and_admin_authorization(client):
 
     unauthorized = client.get("/admin/verifications")
     assert unauthorized.status_code == 403 or unauthorized.status_code == 401
+
+
+def _publish_business(client, admin_headers, email, name, city):
+    response = client.post(
+        "/auth/register/business",
+        json={"email": email, "password": PASSWORD, "business_name": name,
+              "location_city": city, "location_country": "Nepal"},
+    )
+    assert response.status_code == 201, response.text
+    headers = login_headers(client, email)
+    profile = client.post("/business/me/profile", headers=headers, json={"description": name})
+    assert profile.status_code == 201, profile.text
+    assert client.post("/business/me/verification", headers=headers, json={}).status_code == 201
+    record = next(
+        item for item in client.get("/admin/verifications", headers=admin_headers).json()
+        if item["business_name"] == name
+    )
+    decision = client.post(
+        f"/admin/verifications/{record['record_id']}/decision",
+        headers=admin_headers,
+        json={"status": "approved"},
+    )
+    assert decision.status_code == 200, decision.text
+    assert client.patch(
+        "/business/me/profile", headers=headers, json={"is_published": True}
+    ).status_code == 200
+    return profile.json()["business_account_id"]
+
+
+def test_rating_sort_and_partial_location_search(client):
+    register_admin()
+    admin_headers = login_headers(client)
+    # "Aardvark" sorts first by id/name tie-breakers, so it would lead if the
+    # unreviewed business were not pushed below the reviewed one.
+    unreviewed = _publish_business(client, admin_headers, "a@example.com", "Aardvark Audio", "Pokhara")
+    reviewed = _publish_business(client, admin_headers, "z@example.com", "Zenith Venues", "Kathmandu")
+    customer = {"Authorization": f"Bearer {register_customer(client)}"}
+    assert client.post(
+        f"/businesses/{reviewed}/reviews", headers=customer, json={"rating": 3}
+    ).status_code == 201
+
+    ranked = client.get("/businesses", params={"sort": "rating"}).json()
+    assert [item["business"]["id"] for item in ranked] == [reviewed, unreviewed]
+
+    partial = client.get("/businesses", params={"city": "kath"}).json()
+    assert [item["business"]["id"] for item in partial] == [reviewed]
+    # LIKE wildcards in user input are literal, not "match everything".
+    assert client.get("/businesses", params={"city": "%"}).json() == []

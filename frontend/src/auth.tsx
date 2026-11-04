@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api } from "./api";
+import { api, UNAUTHORIZED_EVENT } from "./api";
 import type { User } from "./types";
 
 const TOKEN_KEY = "eventlink.accessToken";
@@ -98,21 +98,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [signIn],
   );
 
-  const signOut = useCallback(async () => {
-    if (token) {
-      try {
-        await api.logout(token);
-      } finally {
-        localStorage.removeItem(TOKEN_KEY);
-        setToken(null);
-        setUser(null);
-      }
-      return;
-    }
+  const clearSession = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
     setToken(null);
     setUser(null);
-  }, [token]);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener(UNAUTHORIZED_EVENT, clearSession);
+    return () => window.removeEventListener(UNAUTHORIZED_EVENT, clearSession);
+  }, [clearSession]);
+
+  const signOut = useCallback(async () => {
+    // Logout is stateless on the server, so a failed call (expired token,
+    // offline) must never leave the visitor stuck signed in.
+    if (token) await api.logout(token).catch(() => undefined);
+    clearSession();
+  }, [token, clearSession]);
 
   const value = useMemo(
     () => ({ user, token, loading, signIn, signUpCustomer, signUpBusiness, signOut }),

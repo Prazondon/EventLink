@@ -5,15 +5,16 @@ import {
   Check,
   Compass,
   Heart,
-  MapPin,
+  LogOut,
   Menu,
   Sparkles,
   Star,
   X,
 } from "lucide-react";
-import { useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./auth";
+import { RoomIndex, RunningOrderTicket } from "./Landing";
 import type { PublicBusiness } from "./types";
 
 export const categoryArt: Record<string, string> = {
@@ -50,10 +51,8 @@ export function businessImage(business: PublicBusiness, index = 0) {
 
 export function Brand({ light = false }: { light?: boolean }) {
   return (
-    <Link className={`brand${light ? " brand-light" : ""}`} to="/">
-      <span className="brand-mark">
-        <Sparkles size={17} strokeWidth={2.25} />
-      </span>
+    <Link className={`brand${light ? " brand-light" : ""}`} to="/" aria-label="EventLink home">
+      <span className="brand-mark" aria-hidden="true" />
       <span>eventlink</span>
     </Link>
   );
@@ -62,61 +61,106 @@ export function Brand({ light = false }: { light?: boolean }) {
 export function Header() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const onLanding = pathname === "/";
   const [menuOpen, setMenuOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMenuOpen(false);
+    setAccountOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!accountOpen) return;
+    const close = (event: MouseEvent | KeyboardEvent) => {
+      if (event instanceof KeyboardEvent ? event.key === "Escape" : !accountRef.current?.contains(event.target as Node)) {
+        setAccountOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", close);
+    };
+  }, [accountOpen]);
 
   async function handleSignOut() {
+    setAccountOpen(false);
+    setMenuOpen(false);
     await signOut();
     navigate("/");
   }
 
+  const home = user?.role === "business" ? "/business" : user?.role === "admin" ? "/admin" : "/dashboard";
+  const homeLabel = user?.role === "business" ? "Business studio" : user?.role === "admin" ? "Admin" : "My EventLink";
+
   return (
-    <header className="site-header">
+    <header className={`site-header${onLanding ? " site-header--gallery" : ""}`}>
       <div className="nav-shell">
-        <Brand />
-        <nav className={`main-nav${menuOpen ? " main-nav-open" : ""}`}>
-          <NavLink to="/discover" onClick={() => setMenuOpen(false)}>
-            Discover
-          </NavLink>
-          <a href="/#how-it-works" onClick={() => setMenuOpen(false)}>
-            How it works
-          </a>
-          {user?.role === "business" && (
-            <NavLink to="/business" onClick={() => setMenuOpen(false)}>
-              Business studio
-            </NavLink>
+        <Brand light />
+        <nav className={`main-nav${menuOpen ? " main-nav-open" : ""}`} aria-label={onLanding ? "Rooms" : "Main"}>
+          {onLanding ? (
+            <RoomIndex onNavigate={() => setMenuOpen(false)} />
+          ) : (
+            <>
+              <NavLink to="/discover">Discover</NavLink>
+              <Link to="/#how-it-works">How it works</Link>
+            </>
           )}
-          {user?.role === "admin" && (
-            <NavLink to="/admin" onClick={() => setMenuOpen(false)}>
-              Admin
-            </NavLink>
-          )}
+          <div className="main-nav-auth">
+            {user ? (
+              <>
+                <Link to={home}>{homeLabel}</Link>
+                <button type="button" onClick={handleSignOut}>Sign out</button>
+              </>
+            ) : (
+              <>
+                <Link to="/login">Log in</Link>
+                <Link to="/register">Join EventLink</Link>
+              </>
+            )}
+          </div>
         </nav>
+        {onLanding && <RunningOrderTicket />}
         <div className="nav-actions">
           {user ? (
             <>
-              {user.role === "customer" && (
-                <Link className="nav-dashboard" to="/dashboard">
-                  My EventLink
-                </Link>
-              )}
-              <button className="avatar-button" onClick={handleSignOut} title="Sign out">
-                {user.email.slice(0, 1).toUpperCase()}
-              </button>
+              <Link className="nav-dashboard" to={home}>{homeLabel}</Link>
+              <div className="account" ref={accountRef}>
+                <button
+                  type="button"
+                  className="avatar-button"
+                  aria-haspopup="menu"
+                  aria-expanded={accountOpen}
+                  aria-label={`Account menu for ${user.email}`}
+                  onClick={() => setAccountOpen(!accountOpen)}
+                >
+                  {user.email.slice(0, 1).toUpperCase()}
+                </button>
+                {accountOpen && (
+                  <div className="account-menu" role="menu">
+                    <span className="account-email">{user.email}</span>
+                    <Link role="menuitem" to={home}>{homeLabel}</Link>
+                    <button role="menuitem" type="button" onClick={handleSignOut}><LogOut size={15} /> Sign out</button>
+                  </div>
+                )}
+              </div>
             </>
           ) : (
             <>
-              <Link className="nav-login" to="/login">
-                Log in
-              </Link>
-              <Link className="button button-dark button-small" to="/register">
-                Join EventLink <ArrowRight size={15} />
-              </Link>
+              <Link className="nav-login" to="/login">Log in</Link>
+              <Link className="button button-accent button-small" to="/register">Join EventLink</Link>
             </>
           )}
         </div>
         <button
+          type="button"
           className="mobile-menu-button"
           aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
           onClick={() => setMenuOpen(!menuOpen)}
         >
           {menuOpen ? <X size={21} /> : <Menu size={21} />}
@@ -130,20 +174,19 @@ export function Footer() {
   return (
     <footer className="site-footer">
       <div className="footer-main">
-        <div>
+        <div className="footer-brand">
           <Brand light />
-          <p>Good people make great celebrations.</p>
+          <p>Local event professionals, verified and easy to reach.</p>
         </div>
-        <div className="footer-links">
-          <Link to="/discover">Explore professionals</Link>
+        <nav className="footer-links" aria-label="Footer">
+          <Link to="/discover">Find your people</Link>
           <Link to="/register?role=business">List your business</Link>
-          <a href="/#how-it-works">How it works</a>
-        </div>
-        <div className="footer-note">Made for the moments that matter.</div>
+          <Link to="/#how-it-works">How it works</Link>
+        </nav>
       </div>
       <div className="footer-bottom">
         <span>© {new Date().getFullYear()} EventLink</span>
-        <span>Thoughtful events start here.</span>
+        <span>Photography via Unsplash</span>
       </div>
     </footer>
   );
@@ -170,55 +213,38 @@ export function BusinessCard({
   saved?: boolean;
   onSave?: (id: string) => void;
 }) {
+  const href = `/businesses/${business.business.id}`;
+  const location = [business.business.location_city, business.business.location_country]
+    .filter(Boolean)
+    .join(", ");
   return (
     <article className="business-card">
-      <Link
-        className="business-card-image"
-        to={`/businesses/${business.business.id}`}
-        style={{ backgroundImage: `url("${businessImage(business, index)}")` }}
-        aria-label={`View ${business.business.business_name}`}
-      >
-        {business.profile.verification_status === "approved" && (
-          <span className="verified-chip">
-            <Check size={12} /> Verified
-          </span>
-        )}
+      <Link className="business-card-image" to={href} tabIndex={-1} aria-hidden="true">
+        <img src={businessImage(business, index)} alt="" loading="lazy" decoding="async" />
       </Link>
       {onSave && (
         <button
+          type="button"
           className={`save-button${saved ? " is-saved" : ""}`}
           onClick={() => onSave(business.business.id)}
-          aria-label={saved ? "Remove from saved" : "Save business"}
+          aria-pressed={saved}
+          aria-label={saved ? `Remove ${business.business.business_name} from saved` : `Save ${business.business.business_name}`}
         >
           {saved ? <Heart size={17} fill="currentColor" /> : <Bookmark size={17} />}
         </button>
       )}
       <div className="business-card-content">
-        <div className="business-card-meta">
-          <span>{business.profile.categories[0]?.name ?? "Event professional"}</span>
-          <Stars rating={business.average_rating} count={business.review_count} />
-        </div>
-        <Link
-          className="business-card-title"
-          to={`/businesses/${business.business.id}`}
-        >
+        <Link className="business-card-title" to={href}>
           {business.business.business_name}
         </Link>
-        <p className="business-card-location">
-          <MapPin size={14} />
-          {[business.business.location_city, business.business.location_country]
-            .filter(Boolean)
-            .join(", ") || "Location not listed"}
-        </p>
-        <p className="business-card-description">
-          {business.profile.description || "A local professional ready to help bring your event to life."}
-        </p>
-        <Link
-          className="business-card-link"
-          to={`/businesses/${business.business.id}`}
-        >
-          View profile <ArrowRight size={15} />
-        </Link>
+        <dl className="business-card-meta">
+          <div><dt>Room</dt><dd>{business.profile.categories[0]?.name ?? "Event professional"}</dd></div>
+          <div><dt>Where</dt><dd>{location || "Location not listed"}</dd></div>
+          <div><dt>Rating</dt><dd><Stars rating={business.average_rating} count={business.review_count} /></dd></div>
+        </dl>
+        {business.profile.verification_status === "approved" && (
+          <span className="verified-chip"><Check size={12} /> Verified</span>
+        )}
       </div>
     </article>
   );
