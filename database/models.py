@@ -43,6 +43,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.orm import (
     DeclarativeBase,
@@ -125,6 +126,7 @@ class User(Base):
 
     __table_args__ = (
         Index("ix_users_role", "role"),
+        Index("uq_users_email_lower", text("lower(email)"), unique=True),
     )
 
 
@@ -238,6 +240,10 @@ class Category(Base):
 
     business_profiles: Mapped[list["BusinessProfile"]] = relationship(
         secondary="business_categories", back_populates="categories"
+    )
+
+    __table_args__ = (
+        Index("uq_categories_name_lower", text("lower(name)"), unique=True),
     )
 
 
@@ -400,4 +406,11 @@ class VerificationRecord(Base):
 
     __table_args__ = (
         Index("ix_verification_records_business_id", "business_id"),
+        Index(
+            "uq_verification_records_pending_business",
+            "business_id",
+            unique=True,
+            postgresql_where=text("status = 'PENDING'"),
+            sqlite_where=text("status = 'PENDING'"),
+        ),
     )

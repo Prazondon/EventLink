@@ -23,8 +23,20 @@ services:
     environment:
       EVENTLINK_DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-eventlink}:${POSTGRES_PASSWORD:-eventlink_dev_password}@db:5432/${POSTGRES_DB:-eventlink}
       EVENTLINK_JWT_SECRET_KEY: ${EVENTLINK_JWT_SECRET_KEY:-CHANGE_ME_IN_PRODUCTION}
+      EVENTLINK_ENVIRONMENT: ${EVENTLINK_ENVIRONMENT:-development}
+      EVENTLINK_CORS_ORIGINS: ${EVENTLINK_CORS_ORIGINS:-http://localhost:5173,http://localhost:3000}
+      EVENTLINK_SMTP_HOST: ${EVENTLINK_SMTP_HOST:-}
+      EVENTLINK_SMTP_PORT: ${EVENTLINK_SMTP_PORT:-587}
+      EVENTLINK_SMTP_USERNAME: ${EVENTLINK_SMTP_USERNAME:-}
+      EVENTLINK_SMTP_PASSWORD: ${EVENTLINK_SMTP_PASSWORD:-}
+      EVENTLINK_SMTP_FROM_EMAIL: ${EVENTLINK_SMTP_FROM_EMAIL:-}
+      EVENTLINK_PASSWORD_RESET_URL: ${EVENTLINK_PASSWORD_RESET_URL:-http://localhost:5173/reset-password}
     ports:
       - "8000:8000"
+    command:
+      - sh
+      - -c
+      - python -m database.migrate && uvicorn backend.main:app --host 0.0.0.0 --port 8000
 
 volumes:
   postgres_data:
