@@ -77,7 +77,14 @@ npm run dev
 ```
 
 To create a production build, run `npm run build` from `frontend/`. The build
-is written to `frontend/dist/`.
+is written to `frontend/dist/` (not committed).
+
+The landing page is a scroll-driven gallery built on the
+[scrollcraft](https://github.com/nateherkai/scroll-craft) engine (MIT). The
+engine ships unmodified in `frontend/public/scrollcraft/` and is loaded only on
+the landing page; `src/scrollcraft.ts` mounts it and tears it down when you
+navigate away. Theme it through the tokens at the top of `src/styles.css`, not
+by editing the engine.
 
 ## Test
 
