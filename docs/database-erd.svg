@@ -1,0 +1,229 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1880 1650" role="img" aria-labelledby="title description">
+  <title id="title">EventLink database entity relationship diagram</title>
+  <desc id="description">Entity relationship diagram of the EventLink database using table cards and UML multiplicity labels.</desc>
+  <defs>
+    <style>
+      text { font-family: "Segoe UI", Arial, sans-serif; fill: #172033; }
+      .title { font-size: 34px; font-weight: 700; }
+      .subtitle { font-size: 17px; fill: #526078; }
+      .section { font-size: 16px; font-weight: 700; letter-spacing: 1.4px; fill: #526078; }
+      .table { fill: #ffffff; stroke: #9aa8bd; stroke-width: 2; }
+      .heading { fill: #e8efff; }
+      .headtext { font-size: 18px; font-weight: 700; letter-spacing: .3px; }
+      .field { font-size: 15px; }
+      .key { font-weight: 700; fill: #3156a6; }
+      .relation { fill: none; stroke: #60718b; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+      .junction { fill: #60718b; }
+      .multiplicity { font-size: 13px; font-weight: 700; fill: #41516a; }
+      .legend { font-size: 14px; fill: #526078; }
+      .divider { stroke: #d7deea; stroke-width: 1.5; }
+      .canvas { fill: #f7f9fc; }
+      .chip { fill: #eef3fb; stroke: #cbd6e6; stroke-width: 1; }
+      .chiptext { font-size: 12px; font-weight: 700; fill: #425675; }
+    </style>
+  </defs>
+
+  <rect class="canvas" width="1880" height="1650" rx="20"/>
+  <text class="title" x="60" y="58">EventLink database</text>
+  <text class="subtitle" x="60" y="88">Entity relationship diagram · UUID primary keys · UML multiplicities</text>
+
+  <text class="section" x="60" y="135">IDENTITY &amp; BUSINESS LISTINGS</text>
+
+  <!-- Relationship connectors are routed behind the entity cards. -->
+  <g aria-label="Relationships">
+    <path class="relation" d="M650 207 H530 V398 H460"/>
+    <text class="multiplicity" x="625" y="195">1</text>
+    <text class="multiplicity" x="466" y="390">0..1</text>
+
+    <path class="relation" d="M890 390 V398"/>
+    <text class="multiplicity" x="900" y="382">1</text>
+    <text class="multiplicity" x="900" y="414">0..1</text>
+
+    <path class="relation" d="M1120 495 H1280"/>
+    <text class="multiplicity" x="1124" y="483">1</text>
+    <text class="multiplicity" x="1240" y="483">0..1</text>
+
+    <path class="relation" d="M1500 628 V707 H650 V790"/>
+    <path class="relation" d="M1500 707 H1110 V790"/>
+    <path class="relation" d="M1500 707 H1580 V790"/>
+    <circle class="junction" cx="1500" cy="707" r="4"/>
+    <text class="multiplicity" x="1510" y="650">1</text>
+    <text class="multiplicity" x="655" y="782">0..*</text>
+    <text class="multiplicity" x="1115" y="782">0..*</text>
+    <text class="multiplicity" x="1585" y="782">0..*</text>
+
+    <path class="relation" d="M420 875 H500"/>
+    <text class="multiplicity" x="424" y="863">1</text>
+    <text class="multiplicity" x="475" y="863">0..*</text>
+
+    <path class="relation" d="M450 512 H485 V700 H40 V1155 H165 V1200"/>
+    <path class="relation" d="M485 700 H900 V1050 H520 V1150 H610 V1200"/>
+    <path class="relation" d="M900 700 H1310 V1050 H1030 V1200"/>
+    <circle class="junction" cx="485" cy="700" r="4"/>
+    <circle class="junction" cx="900" cy="700" r="4"/>
+    <text class="multiplicity" x="457" y="530">1</text>
+    <text class="multiplicity" x="171" y="1194">0..*</text>
+    <text class="multiplicity" x="616" y="1194">0..*</text>
+    <text class="multiplicity" x="1036" y="1194">0..*</text>
+    <text class="multiplicity" x="490" y="720">0..1</text>
+
+    <path class="relation" d="M1000 608 V660 H1810 V1155 H315 V1200"/>
+    <path class="relation" d="M315 1155 H780 V1200"/>
+    <path class="relation" d="M780 1155 H1250 V1200"/>
+    <path class="relation" d="M1250 1155 H1580 V1200"/>
+    <circle class="junction" cx="1810" cy="1155" r="4"/>
+    <circle class="junction" cx="315" cy="1155" r="4"/>
+    <circle class="junction" cx="780" cy="1155" r="4"/>
+    <circle class="junction" cx="1250" cy="1155" r="4"/>
+    <text class="multiplicity" x="1008" y="628">1</text>
+    <text class="multiplicity" x="321" y="1194">0..*</text>
+    <text class="multiplicity" x="786" y="1194">0..*</text>
+    <text class="multiplicity" x="1256" y="1194">0..*</text>
+    <text class="multiplicity" x="1586" y="1194">0..*</text>
+
+    <path class="relation" d="M1120 207 H1850 V1180 H1700 V1200"/>
+    <text class="multiplicity" x="1125" y="195">0..*</text>
+    <text class="multiplicity" x="1706" y="1194">0..1</text>
+  </g>
+
+  <!-- Identity and listing entities -->
+  <g aria-label="Users table">
+    <rect class="table" x="650" y="150" width="470" height="240" rx="10"/>
+    <path class="heading" d="M660 150 H1110 Q1120 150 1120 160 V198 H650 V160 Q650 150 660 150Z"/>
+    <text class="headtext" x="674" y="181">USERS</text>
+    <rect class="chip" x="1020" y="163" width="78" height="22" rx="11"/>
+    <text class="chiptext" x="1031" y="179">IDENTITY</text>
+    <text class="field" x="674" y="224"><tspan class="key">PK</tspan><tspan>  id: UUID</tspan></text>
+    <text class="field" x="674" y="251"><tspan class="key">UK</tspan><tspan>  email: varchar(320)</tspan></text>
+    <text class="field" x="674" y="278">password_hash: varchar(255)</text>
+    <text class="field" x="674" y="305">role: customer | business | admin</text>
+    <text class="field" x="674" y="332">is_active, is_verified: boolean</text>
+    <text class="field" x="674" y="359">created_at, updated_at: datetime</text>
+    <text class="legend" x="674" y="378">Shared credentials for all account roles</text>
+  </g>
+
+  <g aria-label="Customer profiles table">
+    <rect class="table" x="60" y="398" width="400" height="190" rx="10"/>
+    <path class="heading" d="M70 398 H450 Q460 398 460 408 V446 H60 V408 Q60 398 70 398Z"/>
+    <text class="headtext" x="84" y="429">CUSTOMER_PROFILES</text>
+    <text class="field" x="84" y="473"><tspan class="key">PK</tspan><tspan>  id: UUID</tspan></text>
+    <text class="field" x="84" y="500"><tspan class="key">FK, UK</tspan><tspan>  user_id: UUID</tspan></text>
+    <text class="field" x="84" y="527">full_name: varchar(150)</text>
+    <text class="field" x="84" y="554">preferences: JSON, created_at</text>
+  </g>
+
+  <g aria-label="Business accounts table">
+    <rect class="table" x="660" y="398" width="460" height="210" rx="10"/>
+    <path class="heading" d="M670 398 H1110 Q1120 398 1120 408 V446 H660 V408 Q660 398 670 398Z"/>
+    <text class="headtext" x="684" y="429">BUSINESS_ACCOUNTS</text>
+    <text class="field" x="684" y="473"><tspan class="key">PK</tspan><tspan>  id: UUID</tspan></text>
+    <text class="field" x="684" y="500"><tspan class="key">FK, UK</tspan><tspan>  user_id: UUID</tspan></text>
+    <text class="field" x="684" y="527">business_name, contact details</text>
+    <text class="field" x="684" y="554">location_city, location_country</text>
+    <text class="field" x="684" y="581">latitude, longitude, created_at</text>
+  </g>
+
+  <g aria-label="Business profiles table">
+    <rect class="table" x="1280" y="398" width="440" height="230" rx="10"/>
+    <path class="heading" d="M1290 398 H1710 Q1720 398 1720 408 V446 H1280 V408 Q1280 398 1290 398Z"/>
+    <text class="headtext" x="1304" y="429">BUSINESS_PROFILES</text>
+    <text class="field" x="1304" y="473"><tspan class="key">PK</tspan><tspan>  id: UUID</tspan></text>
+    <text class="field" x="1304" y="500"><tspan class="key">FK, UK</tspan><tspan>  business_account_id</tspan></text>
+    <text class="field" x="1304" y="527">description: text</text>
+    <text class="field" x="1304" y="554">verification_status: enum</text>
+    <text class="field" x="1304" y="581">is_published: boolean</text>
+    <text class="field" x="1304" y="608">created_at, updated_at</text>
+  </g>
+
+  <text class="section" x="60" y="670">LISTING DETAILS &amp; CATEGORIES</text>
+
+  <g aria-label="Categories table">
+    <rect class="table" x="60" y="790" width="360" height="165" rx="10"/>
+    <path class="heading" d="M70 790 H410 Q420 790 420 800 V838 H60 V800 Q60 790 70 790Z"/>
+    <text class="headtext" x="84" y="821">CATEGORIES</text>
+    <text class="field" x="84" y="865"><tspan class="key">PK</tspan><tspan>  id: UUID</tspan></text>
+    <text class="field" x="84" y="892"><tspan class="key">UK</tspan><tspan>  name: varchar(100)</tspan></text>
+    <text class="field" x="84" y="919">description: text</text>
+  </g>
+
+  <g aria-label="Business categories association table">
+    <rect class="table" x="500" y="790" width="300" height="165" rx="10"/>
+    <path class="heading" d="M510 790 H790 Q800 790 800 800 V838 H500 V800 Q500 790 510 790Z"/>
+    <text class="headtext" x="524" y="821">BUSINESS_CATEGORIES</text>
+    <text class="field" x="524" y="865"><tspan class="key">PK, FK</tspan><tspan>  business_profile_id</tspan></text>
+    <text class="field" x="524" y="892"><tspan class="key">PK, FK</tspan><tspan>  category_id</tspan></text>
+    <text class="legend" x="524" y="929">Composite primary key</text>
+  </g>
+
+  <g aria-label="Services table">
+    <rect class="table" x="950" y="790" width="320" height="190" rx="10"/>
+    <path class="heading" d="M960 790 H1260 Q1270 790 1270 800 V838 H950 V800 Q950 790 960 790Z"/>
+    <text class="headtext" x="974" y="821">SERVICES</text>
+    <text class="field" x="974" y="865"><tspan class="key">PK</tspan><tspan>  id: UUID</tspan></text>
+    <text class="field" x="974" y="892"><tspan class="key">FK</tspan><tspan>  business_profile_id</tspan></text>
+    <text class="field" x="974" y="919">name, description</text>
+    <text class="field" x="974" y="946">price: decimal, currency</text>
+  </g>
+
+  <g aria-label="Portfolio images table">
+    <rect class="table" x="1380" y="790" width="400" height="190" rx="10"/>
+    <path class="heading" d="M1390 790 H1770 Q1780 790 1780 800 V838 H1380 V800 Q1380 790 1390 790Z"/>
+    <text class="headtext" x="1404" y="821">PORTFOLIO_IMAGES</text>
+    <text class="field" x="1404" y="865"><tspan class="key">PK</tspan><tspan>  id: UUID</tspan></text>
+    <text class="field" x="1404" y="892"><tspan class="key">FK</tspan><tspan>  business_profile_id</tspan></text>
+    <text class="field" x="1404" y="919">image_url: varchar(2048)</text>
+    <text class="field" x="1404" y="946">caption, display_order</text>
+  </g>
+
+  <text class="section" x="60" y="1080">CUSTOMER ACTIVITY &amp; VERIFICATION</text>
+
+  <g aria-label="Reviews table">
+    <rect class="table" x="60" y="1200" width="360" height="200" rx="10"/>
+    <path class="heading" d="M70 1200 H410 Q420 1200 420 1210 V1248 H60 V1210 Q60 1200 70 1200Z"/>
+    <text class="headtext" x="84" y="1231">REVIEWS</text>
+    <text class="field" x="84" y="1275"><tspan class="key">PK</tspan><tspan>  id: UUID</tspan></text>
+    <text class="field" x="84" y="1302"><tspan class="key">FK</tspan><tspan>  customer_id</tspan></text>
+    <text class="field" x="84" y="1329"><tspan class="key">FK</tspan><tspan>  business_id</tspan></text>
+    <text class="field" x="84" y="1356">rating: integer (1-5), comment</text>
+    <text class="legend" x="84" y="1382">One review per customer/business</text>
+  </g>
+
+  <g aria-label="Interaction logs table">
+    <rect class="table" x="520" y="1200" width="360" height="200" rx="10"/>
+    <path class="heading" d="M530 1200 H870 Q880 1200 880 1210 V1248 H520 V1210 Q520 1200 530 1200Z"/>
+    <text class="headtext" x="544" y="1231">INTERACTION_LOGS</text>
+    <text class="field" x="544" y="1275"><tspan class="key">PK</tspan><tspan>  id: UUID</tspan></text>
+    <text class="field" x="544" y="1302"><tspan class="key">FK</tspan><tspan>  customer_id (nullable)</tspan></text>
+    <text class="field" x="544" y="1329"><tspan class="key">FK</tspan><tspan>  business_id</tspan></text>
+    <text class="field" x="544" y="1356">interaction_type: enum</text>
+    <text class="field" x="544" y="1383">consent_flag, created_at</text>
+  </g>
+
+  <g aria-label="Saved businesses table">
+    <rect class="table" x="950" y="1200" width="360" height="180" rx="10"/>
+    <path class="heading" d="M960 1200 H1300 Q1310 1200 1310 1210 V1248 H950 V1210 Q950 1200 960 1200Z"/>
+    <text class="headtext" x="974" y="1231">SAVED_BUSINESSES</text>
+    <text class="field" x="974" y="1275"><tspan class="key">PK, FK</tspan><tspan>  customer_id</tspan></text>
+    <text class="field" x="974" y="1302"><tspan class="key">PK, FK</tspan><tspan>  business_id</tspan></text>
+    <text class="field" x="974" y="1329">saved_at: datetime</text>
+    <text class="legend" x="974" y="1356">Composite primary key</text>
+  </g>
+
+  <g aria-label="Verification records table">
+    <rect class="table" x="1400" y="1200" width="380" height="200" rx="10"/>
+    <path class="heading" d="M1410 1200 H1770 Q1780 1200 1780 1210 V1248 H1400 V1210 Q1400 1200 1410 1200Z"/>
+    <text class="headtext" x="1424" y="1231">VERIFICATION_RECORDS</text>
+    <text class="field" x="1424" y="1275"><tspan class="key">PK</tspan><tspan>  id: UUID</tspan></text>
+    <text class="field" x="1424" y="1302"><tspan class="key">FK</tspan><tspan>  business_id</tspan></text>
+    <text class="field" x="1424" y="1329"><tspan class="key">FK</tspan><tspan>  reviewer_id (nullable)</tspan></text>
+    <text class="field" x="1424" y="1356">status: enum, decision_reason</text>
+    <text class="legend" x="1424" y="1383">At most one pending per business</text>
+  </g>
+
+  <path class="divider" d="M60 1455 H1820"/>
+  <text class="legend" x="60" y="1490"><tspan class="key">PK</tspan><tspan> primary key</tspan></text>
+  <text class="legend" x="230" y="1490"><tspan class="key">FK</tspan><tspan> foreign key</tspan></text>
+  <text class="legend" x="420" y="1490"><tspan class="key">UK</tspan><tspan> unique constraint</tspan></text>
+  <text class="legend" x="660" y="1490">1 = exactly one  ·  0..1 = optional one  ·  0..* = zero or many</text>
+  <text class="legend" x="60" y="1530">User roles and enum values are constrained by application/database definitions; the role-to-profile match is application-enforced.</text>
+</svg>
