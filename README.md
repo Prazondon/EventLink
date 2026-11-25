@@ -57,6 +57,28 @@ migration runner stamps the baseline only when all expected tables already
 exist. It refuses to guess how to repair a partial, unversioned schema; back
 up and resolve that database before continuing.
 
+## Quick start (everything in one go)
+
+```text
+docker compose up --build
+```
+
+This starts PostgreSQL, runs migrations, loads demo data, and starts the API
+(`http://localhost:8000/docs`) and the React app (`http://localhost:5173`).
+The first start installs npm packages, so give it a minute or two.
+
+Demo logins (password `EventLink-Demo-2026`, development only):
+
+| Role | Email |
+| --- | --- |
+| Admin | `admin@demo-eventlink.com` |
+| Customer | `asha@demo-eventlink.com` |
+| Business (approved) | `business1@demo-eventlink.com` |
+| Business (pending) | `business7@demo-eventlink.com` |
+
+To skip demo data set `EVENTLINK_SEED_DEMO=false`. To reload it manually:
+`docker compose exec api python -m backend.seed --reset`.
+
 ## Run the frontend
 
 Start the API and database first, then open a second terminal:

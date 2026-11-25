@@ -137,6 +137,7 @@ export function Header() {
           ) : (
             <>
               <NavLink to="/discover">Discover</NavLink>
+              <NavLink to="/for-business">For businesses</NavLink>
               <Link to="/#how-it-works">How it works</Link>
             </>
           )}
@@ -148,7 +149,8 @@ export function Header() {
               </>
             ) : (
               <>
-                <Link to="/login">Log in</Link>
+                <Link to="/login/customer">Customer log in</Link>
+                <Link to="/login/business">Business log in</Link>
                 <Link to="/register">Join EventLink</Link>
               </>
             )}
@@ -210,6 +212,7 @@ export function Footer() {
         </div>
         <nav className="footer-links" aria-label="Footer">
           <Link to="/discover">Find your people</Link>
+          <Link to="/for-business">For businesses</Link>
           <Link to="/register?role=business">List your business</Link>
           <Link to="/#how-it-works">How it works</Link>
         </nav>
@@ -358,12 +361,14 @@ export function DashboardSidebar({
           { to: "/dashboard", label: "Overview", icon: <Compass size={17} /> },
           { to: "/saved", label: "Saved businesses", icon: <Heart size={17} /> },
           { to: "/recommendations", label: "For you", icon: <Sparkles size={17} /> },
-          { to: "/profile", label: "Your profile", icon: <ArrowDownRight size={17} /> },
+          { to: "/my-reviews", label: "My reviews", icon: <Star size={17} /> },
+          { to: "/profile", label: "Preferences", icon: <ArrowDownRight size={17} /> },
         ]
       : role === "business"
         ? [
             { to: "/business", label: "Overview", icon: <Compass size={17} /> },
             { to: "/business/profile", label: "Your listing", icon: <ArrowDownRight size={17} /> },
+            { to: "/business/reviews", label: "Reviews", icon: <Star size={17} /> },
           ]
         : [
             { to: "/admin", label: "Verification queue", icon: <Check size={17} /> },

@@ -40,6 +40,10 @@ export interface Review {
   created_at: string;
 }
 
+export interface MyReview extends Review {
+  business_name: string;
+}
+
 export interface BusinessAccount {
   id: string;
   user_id: string;

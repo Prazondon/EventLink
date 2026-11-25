@@ -298,6 +298,15 @@ def test_business_verification_catalog_and_customer_flows(client):
     review_list = client.get(f"/businesses/{business_id}/reviews")
     assert review_list.status_code == 200, review_list.text
     assert review_list.json()["total"] == 1
+
+    mine = client.get("/customers/me/reviews", headers=customer_headers)
+    assert mine.status_code == 200, mine.text
+    assert [r["business_name"] for r in mine.json()] == ["EventLink Events"]
+    received = client.get("/business/me/reviews", headers=business_headers)
+    assert received.status_code == 200, received.text
+    assert received.json()["total"] == 1
+    assert client.get("/business/me/reviews", headers=customer_headers).status_code == 403
+    assert client.get("/customers/me/reviews", headers=business_headers).status_code == 403
     assert review_list.json()["average_rating"] == 4.0
 
     interaction = client.post(

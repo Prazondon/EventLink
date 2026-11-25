@@ -6,6 +6,7 @@ import type {
   BusinessProfile,
   Category,
   CustomerDashboardData,
+  MyReview,
   PortfolioImage,
   PublicBusiness,
   Recommendation,
@@ -141,6 +142,30 @@ export const api = {
       { method: "POST", body: jsonBody({ rating, comment_text: comment_text || null }) },
       token,
     ),
+
+  myReviews: (token: string) =>
+    request<MyReview[]>("/customers/me/reviews", {}, token),
+  updateMyReview: (id: string, rating: number, comment_text: string, token: string) =>
+    request<Review>(
+      `/businesses/${id}/reviews/me`,
+      { method: "PATCH", body: jsonBody({ rating, comment_text: comment_text || null }) },
+      token,
+    ),
+  deleteMyReview: (id: string, token: string) =>
+    request<void>(`/businesses/${id}/reviews/me`, { method: "DELETE" }, token),
+  /** Submit a review, or replace the existing one (one active review per business). */
+  saveReview: async (id: string, rating: number, comment_text: string, token: string) => {
+    try {
+      return await api.createReview(id, rating, comment_text, token);
+    } catch (reason) {
+      if (reason instanceof ApiError && reason.status === 409) {
+        return api.updateMyReview(id, rating, comment_text, token);
+      }
+      throw reason;
+    }
+  },
+  businessReviews: (token: string) =>
+    request<ReviewCollection>("/business/me/reviews", {}, token),
 
   customerDashboard: (token: string) =>
     request<CustomerDashboardData>("/customers/me/dashboard", {}, token),

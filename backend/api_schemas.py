@@ -35,6 +35,12 @@ class ReviewCollection(BaseModel):
     total: int
 
 
+class MyReviewRead(ReviewRead):
+    """A customer's own review, with the business it is about (FR-DASH-01)."""
+
+    business_name: str
+
+
 class CustomerProfilePatch(BaseModel):
     full_name: str | None = Field(default=None, min_length=1, max_length=150)
     preferences: CustomerPreferences | None = None

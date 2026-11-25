@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from ..api_schemas import (
     BusinessDashboard,
     BusinessProfileCreateRequest,
+    ReviewCollection,
     PortfolioImageCreateRequest,
     ServiceCreateRequest,
 )
@@ -30,6 +31,7 @@ from database.models import (
     VerificationStatus,
 )
 from ..schemas import (
+    ReviewRead,
     BusinessAccountRead,
     BusinessAccountUpdate,
     BusinessProfileRead,
@@ -101,6 +103,32 @@ def business_dashboard(
         contacts_30_days=counts.get(InteractionType.CONTACT, 0),
         saves_30_days=counts.get(InteractionType.SAVE, 0),
         verification_status=profile.verification_status if profile else None,
+    )
+
+
+@router.get("/reviews", response_model=ReviewCollection)
+def my_received_reviews(
+    db: Session = Depends(get_db),
+    user: User = Depends(business_user),
+) -> ReviewCollection:
+    """Every review about this business, even before it is published (FR-REV-05)."""
+    account = get_business_account(db, user)
+    reviews = (
+        db.query(Review)
+        .filter(Review.business_id == account.id)
+        .order_by(Review.created_at.desc(), Review.id)
+        .limit(100)
+        .all()
+    )
+    average_rating, total = (
+        db.query(func.coalesce(func.avg(Review.rating), 0), func.count(Review.id))
+        .filter(Review.business_id == account.id)
+        .one()
+    )
+    return ReviewCollection(
+        items=[ReviewRead.model_validate(review) for review in reviews],
+        average_rating=float(average_rating),
+        total=int(total),
     )
 
 
