@@ -22,6 +22,7 @@ import {
   type ReactNode,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import {
@@ -30,11 +31,14 @@ import {
   Route,
   Routes,
   useNavigate,
+  useLocation,
   useParams,
   useSearchParams,
 } from "react-router-dom";
 import { api } from "./api";
 import { useAuth } from "./auth";
+import LandingPage from "./Landing";
+import { ScrollUI } from "./scroll";
 import {
   BusinessCard,
   DashboardSidebar,
@@ -45,6 +49,7 @@ import {
   Notice,
   PageHeading,
   SectionTitle,
+  SkeletonGrid,
   Stars,
   businessImage,
 } from "./components";
@@ -132,8 +137,9 @@ function Protected({
   children: ReactNode;
 }) {
   const { user, loading } = useAuth();
+  const location = useLocation();
   if (loading) return <Loading label="Preparing your EventLink..." />;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to={loginPath(location.pathname + location.search)} replace />;
   if (user.role !== role) {
     const destination =
       user.role === "business" ? "/business" : user.role === "admin" ? "/admin" : "/dashboard";
@@ -190,170 +196,65 @@ function AdminLayout({
   );
 }
 
-function LandingPage() {
-  const categories = useResource(api.categories, []);
-  const featured = useResource(
-    () => api.businesses(new URLSearchParams({ sort: "rating", limit: "4" })),
-    [],
-  );
-  return (
-    <>
-      <section className="hero">
-        <div className="hero-orbit hero-orbit-one" />
-        <div className="hero-orbit hero-orbit-two" />
-        <div className="hero-content">
-          <span className="eyebrow eyebrow-light">
-            <Sparkles size={14} /> For the moments that matter
-          </span>
-          <h1>Make room for<br /><em>something wonderful.</em></h1>
-          <p>Find the people who make every celebration feel like yours.</p>
-          <div className="hero-actions">
-            <Link className="button button-cream" to="/discover">
-              Find your people <ArrowRight size={17} />
-            </Link>
-            <Link className="hero-text-link" to="/register?role=business">
-              I’m an event professional
-            </Link>
-          </div>
-          <div className="hero-proof">
-            <span className="proof-avatars"><i>A</i><i>M</i><i>J</i></span>
-            <span>Thoughtful people. Unforgettable days.</span>
-          </div>
-        </div>
-        <div className="hero-image-wrap">
-          <img
-            src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1100&q=88"
-            alt="A warmly lit outdoor celebration"
-          />
-          <div className="hero-image-caption">
-            <span className="caption-star"><Star size={15} fill="currentColor" /></span>
-            <span><strong>Made for your kind of celebration</strong><small>Explore local event professionals</small></span>
-          </div>
-        </div>
-        <div className="hero-bottom-note"><span>01</span> DISCOVER WITH HEART</div>
-      </section>
-
-      <section className="section-wrap category-section">
-        <div className="section-intro">
-          <span className="eyebrow">A good place to begin</span>
-          <h2>Find your kind<br />of <em>magic.</em></h2>
-        </div>
-        <div className="category-grid">
-          {(categories.data ?? []).slice(0, 6).map((category, index) => (
-            <Link
-              className="category-tile"
-              key={category.id}
-              to={`/discover?category_id=${category.id}`}
-              style={{ backgroundImage: `url("${categoryImage(category.name, index)}")` }}
-            >
-              <span>{category.name}</span><ArrowRight size={17} />
-            </Link>
-          ))}
-          {!categories.loading && !categories.error && categories.data?.length === 0 && (
-            <p className="muted-copy">Categories are being prepared. Browse all professionals instead.</p>
-          )}
-          {categories.error && <Notice>{categories.error}</Notice>}
-          <Link className="category-more" to="/discover">
-            <span className="category-more-icon"><Search size={20} /></span>
-            <strong>Browse all<br />professionals</strong>
-            <ArrowRight size={17} />
-          </Link>
-        </div>
-      </section>
-
-      <section className="section-wrap featured-section">
-        <SectionTitle
-          title="Lovely people, doing lovely things."
-          description="Meet a few of the professionals helping make celebrations unforgettable."
-          action={<Link className="text-link" to="/discover">See everyone <ArrowRight size={16} /></Link>}
-        />
-        {featured.loading ? <Loading label="Finding event professionals..." /> : null}
-        {featured.error && <Notice>{featured.error}</Notice>}
-        {featured.data && featured.data.length > 0 && (
-          <div className="business-grid">
-            {featured.data.map((business, index) => (
-              <BusinessCard business={business} index={index} key={business.business.id} />
-            ))}
-          </div>
-        )}
-        {featured.data?.length === 0 && (
-          <EmptyState title="Your next great find starts here">
-            There are no published listings yet. Check back soon or explore the full directory.
-          </EmptyState>
-        )}
-      </section>
-
-      <section className="story-band" id="how-it-works">
-        <div className="story-band-copy">
-          <span className="eyebrow eyebrow-light">Big feeling, small details</span>
-          <h2>Less searching.<br /><em>More celebrating.</em></h2>
-          <p>Bring your ideas together with trusted local professionals who care about the details as much as you do.</p>
-          <Link className="button button-cream" to="/discover">Start exploring <ArrowRight size={16} /></Link>
-        </div>
-        <div className="story-steps">
-          <div><span>01</span><strong>Explore</strong><p>Browse thoughtful professionals by service and place.</p></div>
-          <div><span>02</span><strong>Save your favorites</strong><p>Keep the people and ideas you love close by.</p></div>
-          <div><span>03</span><strong>Make it yours</strong><p>Reach out and bring your celebration to life.</p></div>
-        </div>
-      </section>
-    </>
-  );
-}
-
-function categoryImage(name: string, index: number) {
-  const keyword = name.toLowerCase();
-  const source = [
-    ["venue", "photo-1519167758481-83f550bb49b3"],
-    ["phot", "photo-1537633552985-df8429e8048b"],
-    ["cater", "photo-1555244162-803834f70033"],
-    ["flor", "photo-1523438885200-e635ba2c371e"],
-    ["music", "photo-1501386761578-eac5c94b800a"],
-    ["plan", "photo-1464366400600-7168b8af9bc3"],
-  ].find(([match]) => keyword.includes(match))?.[1] ??
-    ["photo-1519167758481-83f550bb49b3", "photo-1537633552985-df8429e8048b", "photo-1555244162-803834f70033"][index % 3];
-  return `https://images.unsplash.com/${source}?auto=format&fit=crop&w=800&q=85`;
-}
-
 function DiscoverPage() {
+  // The URL is the single source of truth for applied filters, so links such as
+  // "/discover?category_id=..." and the back button always show what they say.
   const [searchParams, setSearchParams] = useSearchParams();
+  const applied = searchParams.toString();
   const [categories, setCategories] = useState<Category[]>([]);
   const [businesses, setBusinesses] = useState<PublicBusiness[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [city, setCity] = useState(searchParams.get("city") ?? "");
-  const [categoryId, setCategoryId] = useState(searchParams.get("category_id") ?? "");
-  const [sort, setSort] = useState(searchParams.get("sort") ?? "rating");
+  const categoryId = searchParams.get("category_id") ?? "";
+  const sort = searchParams.get("sort") ?? "rating";
+  const minPrice = searchParams.get("min_price") ?? "";
+  const maxPrice = searchParams.get("max_price") ?? "";
+  const minRating = Number(searchParams.get("min_rating") ?? "0") || 0;
+  const [minPriceInput, setMinPriceInput] = useState(minPrice);
+  const [maxPriceInput, setMaxPriceInput] = useState(maxPrice);
   const { user, token } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [saveError, setSaveError] = useState("");
 
-  const refresh = useCallback(async () => {
-    const params = new URLSearchParams();
-    if (query.trim()) params.set("q", query.trim());
-    if (city.trim()) params.set("city", city.trim());
-    if (categoryId) params.set("category_id", categoryId);
-    params.set("sort", sort);
-    setSearchParams(params, { replace: true });
+  useEffect(() => {
+    setQuery(searchParams.get("q") ?? "");
+    setCity(searchParams.get("city") ?? "");
+    setMinPriceInput(searchParams.get("min_price") ?? "");
+    setMaxPriceInput(searchParams.get("max_price") ?? "");
+  }, [applied]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    let active = true;
+    const params = new URLSearchParams(applied);
+    if (!params.has("sort")) params.set("sort", "rating");
+    const wantedRating = Number(params.get("min_rating") ?? "0") || 0;
+    params.delete("min_rating");
+    if (wantedRating > 0) params.set("limit", "100");
     setLoading(true);
     setError("");
-    try {
-      const results = await api.businesses(params);
-      setBusinesses(results);
-    } catch (reason) {
-      setError(errorMessage(reason));
-    } finally {
-      setLoading(false);
+    api.businesses(params)
+      .then((results) => { if (active) setBusinesses(wantedRating > 0 ? results.filter((entry) => entry.average_rating >= wantedRating) : results); })
+      .catch((reason: unknown) => { if (active) setError(errorMessage(reason)); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [applied]);
+
+  function applyFilters(changes: Record<string, string>) {
+    const next = new URLSearchParams(searchParams);
+    for (const [key, value] of Object.entries(changes)) {
+      if (value.trim()) next.set(key, value.trim());
+      else next.delete(key);
     }
-  }, [categoryId, city, query, setSearchParams, sort]);
+    setSearchParams(next, { replace: true });
+  }
 
   useEffect(() => {
     api.categories().then(setCategories).catch((reason: unknown) => setError(errorMessage(reason)));
   }, []);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
 
   useEffect(() => {
     if (!token || user?.role !== "customer") return;
@@ -363,8 +264,12 @@ function DiscoverPage() {
   }, [token, user?.role]);
 
   async function toggleSave(id: string) {
-    if (!token || user?.role !== "customer") {
-      window.location.assign("/login");
+    if (!token) {
+      navigate(loginPath(location.pathname + location.search));
+      return;
+    }
+    if (user?.role !== "customer") {
+      setSaveError("Saving professionals is available on customer accounts.");
       return;
     }
     setSaveError("");
@@ -384,8 +289,18 @@ function DiscoverPage() {
 
   function submitSearch(event: FormEvent) {
     event.preventDefault();
-    void refresh();
+    applyFilters({ q: query, city, min_price: minPriceInput, max_price: maxPriceInput });
   }
+
+  const categoryName = categories.find((category) => category.id === categoryId)?.name;
+  const chips: { label: string; clear: Record<string, string> }[] = [];
+  if (searchParams.get("q")) chips.push({ label: `“${searchParams.get("q")}”`, clear: { q: "" } });
+  if (searchParams.get("city")) chips.push({ label: searchParams.get("city")!, clear: { city: "" } });
+  if (categoryId) chips.push({ label: categoryName ?? "Category", clear: { category_id: "" } });
+  if (minPrice) chips.push({ label: `Over ${minPrice}`, clear: { min_price: "" } });
+  if (maxPrice) chips.push({ label: `Under ${maxPrice}`, clear: { max_price: "" } });
+  if (minRating) chips.push({ label: `${minRating}+ stars`, clear: { min_rating: "" } });
+  const clearAll = () => setSearchParams(new URLSearchParams(), { replace: true });
 
   return (
     <div className="page-wrap discover-page">
@@ -393,18 +308,24 @@ function DiscoverPage() {
       <form className="search-panel" onSubmit={submitSearch}>
         <label className="field search-field"><span>What are you looking for?</span><span className="input-with-icon"><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Venue, flowers, photography..." /></span></label>
         <label className="field search-field"><span>Where?</span><span className="input-with-icon"><MapPin size={17} /><input value={city} onChange={(event) => setCity(event.target.value)} placeholder="City or town" /></span></label>
-        <label className="field search-field"><span>Kind of professional</span><span className="select-wrap"><select value={categoryId} onChange={(event) => setCategoryId(event.target.value)}><option value="">All categories</option>{categories.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}</select><ChevronDown size={16} /></span></label>
+        <label className="field search-field"><span>Kind of professional</span><span className="select-wrap"><select value={categoryId} onChange={(event) => applyFilters({ category_id: event.target.value })}><option value="">All categories</option>{categories.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}</select><ChevronDown size={16} /></span></label>
         <button className="button button-dark search-submit" type="submit"><Search size={17} /> Search</button>
+        <div className="filter-row">
+          <label className="field"><span>Budget from</span><input type="number" inputMode="decimal" min={0} value={minPriceInput} onChange={(event) => setMinPriceInput(event.target.value)} placeholder="Any" /></label>
+          <label className="field"><span>Budget up to</span><input type="number" inputMode="decimal" min={0} value={maxPriceInput} onChange={(event) => setMaxPriceInput(event.target.value)} placeholder="Any" /></label>
+          <fieldset className="rating-filter"><legend>Minimum rating</legend>{[0, 3, 4, 4.5].map((value) => <button type="button" key={value} className={`rating-pill${minRating === value ? " is-active" : ""}`} aria-pressed={minRating === value} onClick={() => applyFilters({ min_rating: value ? String(value) : "" })}>{value === 0 ? "Any" : <><Star size={13} fill="currentColor" /> {value}+</>}</button>)}</fieldset>
+        </div>
       </form>
+      {chips.length > 0 && <div className="filter-chips" aria-label="Active filters">{chips.map((chip) => <button type="button" className="chip" key={chip.label} onClick={() => applyFilters(chip.clear)}>{chip.label} <span aria-hidden="true">×</span><span className="sr-only">Remove filter</span></button>)}<button type="button" className="chip chip-clear" onClick={clearAll}>Clear all</button></div>}
       <div className="results-toolbar">
         <span>{loading ? "Finding your people..." : `${businesses.length} ${businesses.length === 1 ? "professional" : "professionals"} to explore`}</span>
-        <label className="sort-select">Sort by <select value={sort} onChange={(event) => setSort(event.target.value)}><option value="rating">Top rated</option><option value="newest">Recently added</option><option value="name">Name</option></select></label>
+        <label className="sort-select">Sort by <select value={sort} onChange={(event) => applyFilters({ sort: event.target.value })}><option value="rating">Top rated</option><option value="newest">Recently added</option><option value="name">Name</option></select></label>
       </div>
       {saveError && <Notice>{saveError}</Notice>}
       {error && <Notice>{error}</Notice>}
-      {loading ? <Loading label="Finding event professionals..." /> : null}
+      {loading ? <SkeletonGrid /> : null}
       {!loading && businesses.length > 0 && <div className="business-grid">{businesses.map((business, index) => <BusinessCard business={business} index={index} key={business.business.id} saved={savedIds.has(business.business.id)} onSave={toggleSave} />)}</div>}
-      {!loading && !error && businesses.length === 0 && <EmptyState icon={<Search size={24} />} title="No matches just yet">Try a nearby city, a different search, or clear a category filter.</EmptyState>}
+      {!loading && !error && businesses.length === 0 && <EmptyState icon={<Search size={24} />} title="No matches just yet" action={chips.length > 0 ? <button type="button" className="button button-outline button-small" onClick={clearAll}>Clear all filters</button> : undefined}>Try a nearby city, a wider budget, or fewer filters.</EmptyState>}
     </div>
   );
 }
@@ -418,10 +339,26 @@ function BusinessDetailsPage() {
   const [comment, setComment] = useState("");
   const contactAction = useSubmission();
   const reviewAction = useSubmission();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Business dashboards report "profile views", but nothing ever recorded one.
+  // Log a view once per visit for signed-in customers (consented by signing in).
+  const isCustomer = user?.role === "customer";
+  const viewRecorded = useRef("");
+  useEffect(() => {
+    if (!token || !isCustomer || !id || viewRecorded.current === id) return;
+    viewRecorded.current = id;
+    api.recordView(id, token).catch(() => undefined);
+  }, [id, token, isCustomer]);
 
   async function contact() {
-    if (!token || user?.role !== "customer") {
-      window.location.assign("/login");
+    if (!token) {
+      navigate(loginPath(location.pathname));
+      return;
+    }
+    if (!isCustomer) {
+      contactAction.setError("Contacting professionals is available on customer accounts.");
       return;
     }
     await contactAction.submit(() => api.contactBusiness(id, token), "Your interest has been shared with this professional.");
@@ -491,19 +428,26 @@ function AuthShell({ children, title, subtitle }: { children: ReactNode; title: 
 
 function LoginPage() {
   const { signIn, user } = useAuth();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const action = useSubmission();
-  if (user) return <Navigate to={roleHome(user.role)} replace />;
+  // Signing in sets `user`, which re-renders straight into this redirect.
+  if (user) return <Navigate to={safeNext(searchParams.get("next")) ?? roleHome(user.role)} replace />;
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const done = await action.submit(() => signIn(String(form.get("email")), String(form.get("password"))), "Welcome back.");
-    if (done) {
-      navigate(searchParams.get("next") || "/dashboard");
-    }
+    await action.submit(() => signIn(String(form.get("email")), String(form.get("password"))), "Welcome back.");
   }
   return <AuthShell title="Welcome back." subtitle="Sign in to pick up where you left off."><form className="auth-form" onSubmit={handleSubmit}><label className="field"><span>Email address</span><input type="email" name="email" autoComplete="email" required placeholder="you@example.com" /></label><label className="field"><span>Password</span><input type="password" name="password" autoComplete="current-password" required placeholder="Your password" /></label><div className="auth-helper"><Link to="/forgot-password">Forgot password?</Link></div><Feedback error={action.error} success={action.success} /><button className="button button-dark button-full" disabled={action.busy}>{action.busy ? "Signing in..." : "Sign in"} <ArrowRight size={16} /></button><p className="auth-switch">New to EventLink? <Link to="/register">Create an account</Link></p></form></AuthShell>;
+}
+
+function loginPath(next: string) {
+  return `/login?next=${encodeURIComponent(next)}`;
+}
+
+/** Only same-app paths are honoured, so `?next=` cannot send people off-site. */
+function safeNext(value: string | null) {
+  if (!value || !value.startsWith("/") || value.startsWith("//") || value.startsWith("/\\")) return null;
+  return value;
 }
 
 function roleHome(role: UserRole) {
@@ -512,23 +456,27 @@ function roleHome(role: UserRole) {
 
 function RegisterPage() {
   const { signUpCustomer, signUpBusiness, user } = useAuth();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [role, setRole] = useState<"customer" | "business">(searchParams.get("role") === "business" ? "business" : "customer");
   const action = useSubmission();
-  if (user) return <Navigate to={roleHome(user.role)} replace />;
+  // New businesses land on their listing editor; everyone else on their home.
+  if (user) return <Navigate to={user.role === "business" ? "/business/profile" : safeNext(searchParams.get("next")) ?? roleHome(user.role)} replace />;
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const email = String(form.get("email"));
     const password = String(form.get("password"));
     const name = String(form.get("name"));
+    if (form.get("consent") !== "on") {
+      action.setError("Please tick the consent box to continue.");
+      return;
+    }
     const task = role === "customer"
       ? () => signUpCustomer(email, password, name)
       : () => signUpBusiness(email, password, name, String(form.get("city") || ""), String(form.get("country") || ""));
-    if (await action.submit(task, "Your account is ready.")) navigate(role === "business" ? "/business/profile" : "/dashboard");
+    await action.submit(task, "Your account is ready.");
   }
-  return <AuthShell title="Good things start here." subtitle="Create your free EventLink account."><div className="role-tabs"><button type="button" className={role === "customer" ? "role-tab selected" : "role-tab"} onClick={() => setRole("customer")}><Users size={16} /> I’m planning an event</button><button type="button" className={role === "business" ? "role-tab selected" : "role-tab"} onClick={() => setRole("business")}><Sparkles size={16} /> I’m a professional</button></div><form className="auth-form" onSubmit={handleSubmit}><label className="field"><span>{role === "business" ? "Business name" : "Your name"}</span><input name="name" required maxLength={role === "business" ? 200 : 150} placeholder={role === "business" ? "The name of your business" : "Your full name"} /></label>{role === "business" && <div className="form-grid"><label className="field"><span>City</span><input name="city" maxLength={120} placeholder="City" /></label><label className="field"><span>Country</span><input name="country" maxLength={120} placeholder="Country" /></label></div>}<label className="field"><span>Email address</span><input type="email" name="email" autoComplete="email" required placeholder="you@example.com" /></label><label className="field"><span>Password</span><input type="password" name="password" autoComplete="new-password" minLength={10} maxLength={128} required placeholder="At least 10 characters" /><small>Use at least 10 characters.</small></label><Feedback error={action.error} success={action.success} /><button className="button button-dark button-full" disabled={action.busy}>{action.busy ? "Creating account..." : "Create account"} <ArrowRight size={16} /></button><p className="auth-switch">Already with us? <Link to="/login">Sign in</Link></p></form></AuthShell>;
+  return <AuthShell title="Good things start here." subtitle="Create your free EventLink account."><div className="role-tabs"><button type="button" className={role === "customer" ? "role-tab selected" : "role-tab"} onClick={() => setRole("customer")}><Users size={16} /> I’m planning an event</button><button type="button" className={role === "business" ? "role-tab selected" : "role-tab"} onClick={() => setRole("business")}><Sparkles size={16} /> I’m a professional</button></div><form className="auth-form" onSubmit={handleSubmit}><label className="field"><span>{role === "business" ? "Business name" : "Your name"}</span><input name="name" required maxLength={role === "business" ? 200 : 150} placeholder={role === "business" ? "The name of your business" : "Your full name"} /></label>{role === "business" && <div className="form-grid"><label className="field"><span>City</span><input name="city" maxLength={120} placeholder="City" /></label><label className="field"><span>Country</span><input name="country" maxLength={120} placeholder="Country" /></label></div>}<label className="field"><span>Email address</span><input type="email" name="email" autoComplete="email" required placeholder="you@example.com" /></label><label className="field"><span>Password</span><input type="password" name="password" autoComplete="new-password" minLength={10} maxLength={128} required placeholder="At least 10 characters" /><small>Use at least 10 characters.</small></label><label className="consent-check"><input type="checkbox" name="consent" required /><span>I agree that EventLink may store my account details{role === "customer" ? " and the activity that powers my recommendations (views, saves, contacts)" : " and show my business details publicly once approved"}. I can ask for it to be removed at any time.</span></label><Feedback error={action.error} success={action.success} /><button className="button button-dark button-full" disabled={action.busy}>{action.busy ? "Creating account..." : "Create account"} <ArrowRight size={16} /></button><p className="auth-switch">Already with us? <Link to="/login">Sign in</Link></p></form></AuthShell>;
 }
 
 function ForgotPasswordPage() {
@@ -553,9 +501,9 @@ function ResetPasswordPage() {
 }
 
 function CustomerDashboardPage() {
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const resource = useResource(() => api.customerDashboard(token!), [token]);
-  return <CustomerLayout active="/dashboard"><PageHeading eyebrow="YOUR EVENTLINK" title={`Welcome back${user?.email ? "." : ""}`} subtitle="Keep your inspiration close and discover the people who can bring it to life." />{resource.error && <Notice>{resource.error}</Notice>}{resource.loading && <Loading label="Loading your dashboard..." />}{resource.data && <div className="stats-grid"><StatCard value={resource.data.saved_business_count} label="Saved professionals" icon={<Bookmark size={18} />} to="/saved" /><StatCard value={resource.data.review_count} label="Reviews shared" icon={<Star size={18} />} to="/discover" /><StatCard value={resource.data.interactions_30_days} label="Connections this month" icon={<Heart size={18} />} to="/discover" /></div>}<section className="workspace-section"><SectionTitle title="A little inspiration" description="Your next favorite professional might be just around the corner." action={<Link className="text-link" to="/discover">Discover all <ArrowRight size={15} /></Link>} /><SuggestedBusinesses /></section></CustomerLayout>;
+  return <CustomerLayout active="/dashboard"><PageHeading eyebrow="YOUR EVENTLINK" title="Welcome back." subtitle="Keep your inspiration close and discover the people who can bring it to life." />{resource.error && <Notice>{resource.error}</Notice>}{resource.loading && <Loading label="Loading your dashboard..." />}{resource.data && <div className="stats-grid"><StatCard value={resource.data.saved_business_count} label="Saved professionals" icon={<Bookmark size={18} />} to="/saved" /><StatCard value={resource.data.review_count} label="Reviews shared" icon={<Star size={18} />} to="/discover" /><StatCard value={resource.data.interactions_30_days} label="Connections this month" icon={<Heart size={18} />} to="/discover" /></div>}<section className="workspace-section"><SectionTitle title="A little inspiration" description="Your next favorite professional might be just around the corner." action={<Link className="text-link" to="/discover">Discover all <ArrowRight size={15} /></Link>} /><SuggestedBusinesses /></section></CustomerLayout>;
 }
 
 function StatCard({ value, label, icon, to }: { value: number; label: string; icon: ReactNode; to: string }) {
@@ -589,7 +537,8 @@ function SavedPage() {
 function RecommendationsPage() {
   const { token } = useAuth();
   const resource = useResource(() => api.recommendations(token!), [token]);
-  return <CustomerLayout active="/recommendations"><PageHeading eyebrow="PICKED FOR YOU" title="A few lovely possibilities." subtitle="Suggestions based on the preferences you’ve shared and the professionals you’ve saved." />{resource.error && <Notice>{resource.error}</Notice>}{resource.loading && <Loading label="Finding your recommendations..." />}{resource.data?.length ? <div className="business-grid">{resource.data.map((entry, index) => <BusinessCard key={entry.business.business.id} business={entry.business} index={index} />)}</div> : !resource.loading && <EmptyState icon={<Sparkles size={24} />} title="Your recommendations are taking shape">Set your preferences on your profile and save a few businesses to personalize your picks.</EmptyState>}</CustomerLayout>;
+  const fallback = useResource(() => api.businesses(new URLSearchParams({ sort: "newest", limit: "6" })), []);
+  return <CustomerLayout active="/recommendations"><PageHeading eyebrow="PICKED FOR YOU" title="A few lovely possibilities." subtitle="Suggestions based on the preferences you’ve shared and the professionals you’ve saved." />{resource.error && <Notice>{resource.error}</Notice>}{resource.loading && <Loading label="Finding your recommendations..." />}{resource.data?.length ? <div className="business-grid">{resource.data.map((entry, index) => <BusinessCard key={entry.business.business.id} business={entry.business} index={index} />)}</div> : !resource.loading && <><EmptyState icon={<Sparkles size={24} />} title="Your recommendations are taking shape" action={<Link className="button button-dark button-small" to="/profile">Set my preferences</Link>}>Tell us your category, city and budget, and save a few businesses, to personalise your picks. Meanwhile, here are some recently added professionals.</EmptyState>{fallback.data?.length ? <div className="business-grid fallback-grid">{fallback.data.map((item, index) => <BusinessCard key={item.business.id} business={item} index={index} />)}</div> : null}</>}</CustomerLayout>;
 }
 
 function CustomerProfilePage() {
@@ -727,12 +676,21 @@ function VerificationQueue() {
   const { token } = useAuth();
   const resource = useResource(() => api.verificationQueue(token!), [token]);
   const action = useSubmission();
+  const [rejecting, setRejecting] = useState<string | null>(null);
+  const [reason, setReason] = useState("");
   async function decide(request: VerificationRequest, status: "approved" | "rejected") {
-    if (!window.confirm(`${status === "approved" ? "Approve" : "Reject"} ${request.business_name}?`)) return;
-    const success = await action.submit(() => api.decideVerification(request.record_id, status, "", token!), `Business ${status}.`);
-    if (success) resource.reload();
+    if (status === "rejected" && reason.trim().length < 3) {
+      action.setError("Please give the business a short reason for the rejection.");
+      return;
+    }
+    const success = await action.submit(() => api.decideVerification(request.record_id, status, status === "rejected" ? reason.trim() : "", token!), `${request.business_name} ${status}.`);
+    if (success) {
+      setRejecting(null);
+      setReason("");
+      resource.reload();
+    }
   }
-  return <section className="workspace-section"><SectionTitle title="Waiting for your review" description="Approve a listing when its business details have been checked." />{action.error && <Notice>{action.error}</Notice>}{action.success && <Notice tone="success">{action.success}</Notice>}{resource.error && <Notice>{resource.error}</Notice>}{resource.loading && <Loading label="Loading verification requests..." />}{resource.data?.length ? <div className="verification-list">{resource.data.map((request) => <article className="verification-row" key={request.record_id}><span className="verification-icon"><ShieldCheck size={20} /></span><div className="verification-info"><strong>{request.business_name}</strong><span>{request.contact_email || "No contact email provided"}</span><small>Submitted {new Date(request.created_at).toLocaleDateString()}</small></div><div className="verification-actions"><button className="button button-outline button-small" disabled={action.busy} onClick={() => decide(request, "rejected")}>Reject</button><button className="button button-dark button-small" disabled={action.busy} onClick={() => decide(request, "approved")}><Check size={15} /> Approve</button></div></article>)}</div> : !resource.loading && <EmptyState icon={<BadgeCheck size={24} />} title="All caught up">There are no pending business verification requests.</EmptyState>}</section>;
+  return <section className="workspace-section"><SectionTitle title="Waiting for your review" description="Approve a listing when its business details have been checked." />{action.error && <Notice>{action.error}</Notice>}{action.success && <Notice tone="success">{action.success}</Notice>}{resource.error && <Notice>{resource.error}</Notice>}{resource.loading && <Loading label="Loading verification requests..." />}{resource.data?.length ? <div className="verification-list">{resource.data.map((request) => <article className="verification-row" key={request.record_id}><span className="verification-icon"><ShieldCheck size={20} /></span><div className="verification-info"><strong>{request.business_name}</strong><span>{request.contact_email || "No contact email provided"}</span><small>Submitted {new Date(request.created_at).toLocaleDateString()}</small></div><div className="verification-actions">{rejecting === request.record_id ? <><label className="reject-reason"><span className="sr-only">Reason for rejection</span><input autoFocus value={reason} onChange={(event) => setReason(event.target.value)} maxLength={500} placeholder="Reason shown to the business" /></label><button className="button button-outline button-small" disabled={action.busy} onClick={() => { setRejecting(null); setReason(""); }}>Cancel</button><button className="button button-dark button-small" disabled={action.busy} onClick={() => decide(request, "rejected")}>Confirm reject</button></> : <><button className="button button-outline button-small" disabled={action.busy} onClick={() => { setRejecting(request.record_id); action.setError(""); }}>Reject</button><button className="button button-dark button-small" disabled={action.busy} onClick={() => decide(request, "approved")}><Check size={15} /> Approve</button></>}</div></article>)}</div> : !resource.loading && <EmptyState icon={<BadgeCheck size={24} />} title="All caught up">There are no pending business verification requests.</EmptyState>}</section>;
 }
 
 function CategoryManager() {
@@ -760,7 +718,7 @@ function NotFoundPage() {
 }
 
 export default function App() {
-  return <><Header /><Routes>
+  return <><ScrollUI /><Header /><Routes>
     <Route path="/" element={<LandingPage />} />
     <Route path="/discover" element={<DiscoverPage />} />
     <Route path="/businesses/:id" element={<BusinessDetailsPage />} />

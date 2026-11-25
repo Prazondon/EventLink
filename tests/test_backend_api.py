@@ -127,6 +127,30 @@ def test_authentication_and_role_guards(client, caplog):
     ).json() == reset_request.json()
 
 
+def test_business_profile_swagger_auth_flow(client):
+    openapi = client.get("/openapi.json").json()
+    bearer_scheme = openapi["components"]["securitySchemes"]["HTTPBearer"]
+    assert bearer_scheme["scheme"] == "bearer"
+    assert "POST /auth/login" in bearer_scheme["description"]
+    assert openapi["paths"]["/business/me/profile"]["post"]["security"] == [
+        {"HTTPBearer": []}
+    ]
+
+    profile_payload = {"description": "Event planning services", "category_ids": []}
+    unauthenticated = client.post("/business/me/profile", json=profile_payload)
+    assert unauthenticated.status_code == 401
+    assert unauthenticated.json() == {"detail": "Not authenticated"}
+
+    token = register_business(client, email="profile-owner@example.com")
+    authenticated = client.post(
+        "/business/me/profile",
+        headers={"Authorization": f"Bearer {token}"},
+        json=profile_payload,
+    )
+    assert authenticated.status_code == 201, authenticated.text
+    assert authenticated.json()["description"] == profile_payload["description"]
+
+
 def test_business_verification_catalog_and_customer_flows(client):
     register_admin()
     admin_headers = login_headers(client)

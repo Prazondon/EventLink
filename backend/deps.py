@@ -23,7 +23,15 @@ from database.database import get_db
 from .security import TokenType, decode_token
 from database.models import User, UserRole
 
-_bearer_scheme = HTTPBearer(auto_error=True)
+_bearer_scheme = HTTPBearer(
+    auto_error=True,
+    description=(
+        "To use protected endpoints in Swagger, call POST /auth/login, copy "
+        "the access_token, click Authorize, and paste only the token (without "
+        "the 'Bearer ' prefix). Register a business first with "
+        "POST /auth/register/business if needed."
+    ),
+)
 
 
 def get_current_user(

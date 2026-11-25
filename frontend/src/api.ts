@@ -22,6 +22,8 @@ const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replac
   "",
 );
 
+export const UNAUTHORIZED_EVENT = "eventlink:unauthorized";
+
 export class ApiError extends Error {
   status: number;
 
@@ -65,6 +67,11 @@ async function request<T>(
       }
     } catch {
       // Keep the HTTP status message when the server does not return JSON.
+    }
+    // An expired or revoked token makes every signed-in request fail; tell the
+    // auth layer so it can clear the session instead of showing raw errors.
+    if (response.status === 401 && token) {
+      window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
     }
     throw new ApiError(response.status, message);
   }
@@ -166,6 +173,15 @@ export const api = {
       {
         method: "POST",
         body: jsonBody({ interaction_type: "contact", consent_flag: true }),
+      },
+      token,
+    ),
+  recordView: (id: string, token: string) =>
+    request(
+      `/businesses/${id}/interactions`,
+      {
+        method: "POST",
+        body: jsonBody({ interaction_type: "view", consent_flag: true }),
       },
       token,
     ),

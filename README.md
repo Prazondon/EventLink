@@ -102,3 +102,10 @@ python -m pytest -q
   under `/admin`; requires an administrator token.
 
 Use the OpenAPI page at `/docs` for request and response schemas.
+
+## Database data model
+
+The database schema is documented as a Mermaid ER diagram in
+[docs/database-erd.md](docs/database-erd.md). It shows the entities,
+primary/foreign keys, and crow's-foot relationship cardinalities.
+The [ER diagram image](docs/database-erd.svg) can also be viewed directly.
