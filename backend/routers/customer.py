@@ -13,6 +13,7 @@ from ..api_schemas import (
     CustomerDashboard,
     CustomerProfilePatch,
     InteractionSubmission,
+    MyReviewRead,
     PublicBusinessRead,
     RecommendationRead,
     ReviewCollection,
@@ -114,6 +115,25 @@ def _visible_business(db: Session, business_id: uuid.UUID) -> BusinessAccount:
     if business is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Business not found.")
     return business
+
+
+@router.get("/customers/me/reviews", response_model=list[MyReviewRead])
+def list_my_reviews(
+    db: Session = Depends(get_db),
+    user: User = Depends(customer_user),
+) -> list[MyReviewRead]:
+    customer = get_customer_profile(db, user)
+    rows = (
+        db.query(Review, BusinessAccount.business_name)
+        .join(BusinessAccount, BusinessAccount.id == Review.business_id)
+        .filter(Review.customer_id == customer.id)
+        .order_by(Review.created_at.desc(), Review.id)
+        .all()
+    )
+    return [
+        MyReviewRead.model_validate({**ReviewRead.model_validate(review).model_dump(), "business_name": name})
+        for review, name in rows
+    ]
 
 
 @router.get("/businesses/{business_id}/reviews", response_model=ReviewCollection)

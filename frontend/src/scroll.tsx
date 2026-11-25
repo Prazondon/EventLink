@@ -25,6 +25,15 @@ const REVEAL_SELECTOR = [
   ".page-heading",
   ".search-panel",
   ".empty-state",
+  ".welcome-band",
+  ".nudge",
+  ".chooser-card",
+  ".checklist-card",
+  ".rating-summary",
+  ".fb-step",
+  ".fb-benefit",
+  ".fb-faq details",
+  ".fb-cta",
 ].join(",");
 
 const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
